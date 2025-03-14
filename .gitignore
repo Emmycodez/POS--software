@@ -1,0 +1,32 @@
+# Ignore node_modules folders
+client/node_modules/
+server/node_modules/
+
+# Ignore build output
+client/.next/
+server/dist/
+client/dist/
+
+# Ignore environment variable files
+client/.env
+server/.env
+
+# Logs
+client/logs/
+server/logs/
+*.log
+
+# Dependency directories
+node_modules/
+
+# Ignore OS and IDE-specific files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Ignore local environment settings
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
