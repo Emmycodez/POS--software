@@ -10,6 +10,7 @@ import inventoryRoute from './routes/inventoryRoute.js'
 import posRoute from './routes/posRoute.js'
 import transactionRoute from './routes/transactionRoute.js'
 import alertRoute from './routes/alertRoute.js'
+import supplierRoute from './routes/supplierRoute.js'
 
 dotenv.config();
 
@@ -31,7 +32,8 @@ app.use("/api/products", productRoute);
 app.use('/api/inventory', inventoryRoute);
 app.use("/api/pos", posRoute)
 app.use("/api/transactions", transactionRoute);
-app.use("/api/alerts", alertRoute)
+app.use("/api/alerts", alertRoute);
+app.use("/api/suppliers", supplierRoute)
 
 const port = process.env.PORT || 4000;
 

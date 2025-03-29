@@ -26,6 +26,6 @@ const InventoryPage = async () => {
   );
 };
 
-// TODO: Add Update Stock Functionality
+
 
 export default InventoryPage;

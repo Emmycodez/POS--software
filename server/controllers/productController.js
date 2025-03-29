@@ -1,4 +1,4 @@
-import { Product } from "../database/schema.js";
+import { Product, ProductStock } from "../database/schema.js";
 
 import { ProductPrice } from "../database/schema.js";
 import { Supplier } from "../database/schema.js";
@@ -7,8 +7,9 @@ export const createProduct = async (req, res) => {
   try {
     const {
       productName,
-      productPrice,
-      stockQuantity,
+      productSellingPrice,
+      productCostPrice,
+      stock,
       supplier,
       supplierNumber,
       productDescription,
@@ -19,8 +20,8 @@ export const createProduct = async (req, res) => {
 
     if (
       !productName ||
-      !productPrice ||
-      !stockQuantity ||
+      !productSellingPrice || !productCostPrice ||
+      !stock ||
       !supplier ||
       !productDescription ||
       !reorderLevel ||
@@ -29,7 +30,7 @@ export const createProduct = async (req, res) => {
     ) {
       return res.status(400).json({
         message:
-          "Send all required fields: productName, productPrice, stockQuantity, supplier, productDescription, reorderLevel, category, stockKeepingUnit",
+          "Send all required fields: productName, productSellingPrice, productCostPrice, Stock, supplier, productDescription, reorderLevel, category, stockKeepingUnit",
       });
     }
 
@@ -48,7 +49,6 @@ export const createProduct = async (req, res) => {
       sku: stockKeepingUnit,
       description: productDescription,
       category,
-      quantity: stockQuantity,
       reorderLevel,
       supplier: existingSupplier._id, // Store as ObjectId
     });
@@ -58,11 +58,23 @@ export const createProduct = async (req, res) => {
     // Create Product Price Entry
     const newProductPrice = new ProductPrice({
       product: newProduct._id,
-      price: productPrice,
+      sellingPrice: productSellingPrice,
+      costPrice: productCostPrice,
       currency: "NGN", // Assuming Naira
     });
 
     await newProductPrice.save();
+
+      // Create Stock Entries for each location
+      const stockEntries = stock.map(({ locationId, quantity }) => ({
+        product: newProduct._id,
+        location: locationId,
+        quantity,
+      }));
+  
+      await ProductStock.insertMany(stockEntries);
+  
+      console.log("Product created with stock data: ", req.body);
 
     console.log(
       "This is the data sent to the create product route: ",
@@ -99,8 +111,10 @@ export const getProducts = async (req, res) => {
           quantity: product.quantity,
           reorderLevel: product.reorderLevel,
           supplierName: product.supplier?.name || "Unknown Supplier",
+          category: product.category || "",
           supplierNumber: product.supplier?.phone || "N/A",
           price: parseInt(productPrice?.price) || 0, // Default to 0 if no price found
+          lastUpdated: product.updatedAt
         };
       })
     );

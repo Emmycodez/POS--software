@@ -10,13 +10,26 @@ const userSchema = new Schema(
     role: { type: String, enum: ["admin", "staff", "user"], default: "user" },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
     lastLogin: { type: Date },
+    locations: [{ type: Schema.Types.ObjectId, ref: "Location" }], // User can have multiple locations
   },
-  { timestamps: true } // Automatically adds `createdAt` and `updatedAt`
+  { timestamps: true }
 );
 
 const User = model("User", userSchema);
 
-// TODO: Add location data to schema and form
+const locationSchema = new Schema(
+  {
+    name: { type: String, required: true }, // e.g., "Branch A", "Warehouse 1"
+    address: { type: String, required: true },
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true }, // Owner of the location
+  },
+  { timestamps: true }
+);
+
+const Location = model("Location", locationSchema);
+
+
+// TODO: Add location data to and form
 
 const productSchema = new Schema(
   {
@@ -24,7 +37,6 @@ const productSchema = new Schema(
     sku: { type: String, unique: true },
     description: { type: String },
     category: { type: String },
-    quantity: { type: Number, required: true, default: 0 },
     reorderLevel: { type: Number, required: true },
     supplier: { type: Schema.Types.ObjectId, ref: "Supplier" },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
@@ -40,6 +52,18 @@ productSchema.pre("save", function (next) {
 });
 
 const Product = model("Product", productSchema);
+
+const productStockSchema = new Schema(
+  {
+    product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+    location: { type: Schema.Types.ObjectId, ref: "Location", required: true },
+    quantity: { type: Number, required: true, default: 0 }, // Stock at this location
+  },
+  { timestamps: true }
+);
+
+const ProductStock = model("ProductStock", productStockSchema);
+
 
 const alertSchema = new Schema(
   {
@@ -153,7 +177,8 @@ const Receipt = model("Receipt", receiptSchema);
 const productPriceSchema = new Schema(
   {
     product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
-    price: { type: Number, required: true },
+    sellingPrice: { type: Number, required: true },
+    costPrice: {type: Number, required: true},
     currency: { type: String, required: true, default: "USD" },
     discount: { type: Number, default: 0 }, // Percentage discount (e.g., 10 for 10%)
     effectiveDate: { type: Date, default: Date.now },
@@ -183,7 +208,7 @@ const transactionSchema = new Schema(
     changeGiven: { type: Number, default: 0 }, // Change given to the customer
     paymentMethod: {
       type: String,
-      enum: ["cash", "bank transfer", "card", "mobile money"],
+      enum: ["cash", "transfer", "card", "mobile money"],
       required: true,
     },
     status: {
@@ -208,8 +233,13 @@ export {
   Receipt,
   ProductPrice,
   Transaction,
+  Location,
+  ProductStock
 };
 
 // TODO: Add bank details section to user schema, bank name and account number, also enable multiple accounts to show during bank transfer POS event
 
 // TODO: Add authentication and authorization for multi-party such as employess like cashiers e.t.c
+
+// Termii API 
+// channel: generic, from: inventrack

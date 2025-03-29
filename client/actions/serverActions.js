@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 
 export const createProduct = async ({
   productName,
-  productPrice,
-  stockQuantity,
+  productSellingPrice,
+  productCostPrice,
+  locationStock,
   productDescription,
   supplier,
   supplierNumber,
@@ -16,8 +17,8 @@ export const createProduct = async ({
   try {
     if (
       !productName ||
-      !productPrice ||
-      !stockQuantity | !productDescription ||
+      !productSellingPrice || !productCostPrice ||
+      !locationStock | !productDescription ||
       !supplier ||
       !supplierNumber ||
       !reorderLevel ||
@@ -37,8 +38,9 @@ export const createProduct = async ({
         },
         body: JSON.stringify({
           productName,
-          productPrice,
-          stockQuantity,
+          productSellingPrice,
+          productCostPrice,
+          stock: locationStock,
           productDescription,
           supplier,
           supplierNumber,
@@ -86,6 +88,33 @@ export const getProducts = async () => {
   } catch (error) {
     console.error(
       "Error fetching products from the server action",
+      error.message
+    );
+    throw error;
+  }
+};
+
+export const getSuppliers = async () => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/suppliers`,
+      {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`Failed to fetch inventory data: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      "Error fetching suppliers from the server action",
       error.message
     );
     throw error;
@@ -146,6 +175,54 @@ export const getPosProducts = async () => {
   }
 };
 
+export const createSupplier = async (values) => {
+  try {
+    if (values) {
+      console.log("The values sent from the create supplier form: ", values);
+    }
+
+    const { name, contactEmail, phone, countryCode, address, website } = values;
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/suppliers
+    `,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          contactEmail,
+          phone,
+          countryCode,
+          address,
+          website,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      console.error(
+        `Failed to create supplier in database: ${response.statusText}`
+      );
+      throw new Error(
+        `Failed to create supplier in database: ${response.statusText}`
+      );
+    }
+
+    const data = await response.json();
+    console.log("This is the data returned from the backend", data);
+    revalidatePath("/site/dashboard/suppliers");
+    return data;
+  } catch (error) {
+    console.error(
+      "Error creating supplier in the server action",
+      error.message
+    );
+    throw error;
+  }
+};
+
 export const createTransaction = async (data) => {
   revalidatePath("/site/dashboard/pos");
   if (data) {
@@ -195,6 +272,7 @@ export const createTransaction = async (data) => {
 
     const data = await response.json();
     console.log("This is the data returned from the backend", data);
+    revalidatePath("/site/dashboard/transactions");
     return data;
   } catch (error) {
     console.error(
@@ -277,6 +355,34 @@ export const updateAlert = async (status, alertId) => {
   }
 };
 
+export const getTransactions = async () => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/transactions`,
+      {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch transactions: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      "Error fetching transactions from server action",
+      error.message
+    );
+    throw error;
+  }
+};
+
 export const getAlerts = async () => {
   try {
     const response = await fetch(
@@ -304,8 +410,3 @@ export const getAlerts = async () => {
     throw error;
   }
 };
-
-
-export const createSupplier = (values) => {
-
-}

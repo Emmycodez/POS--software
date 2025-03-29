@@ -66,17 +66,39 @@ export const createTransaction = async (req, res) => {
   }
 };
 
-// // **Check Stock Levels After Transaction**
-// for (const item of products) {
-//   const product = await Product.findById(item.id); // Find the product in DB
+export const getTransactions = async (req, res) => {
+  try {
+    // Populate the product details inside each transaction
+    const transactions = await Transaction.find().populate({
+      path: "products.product",
+      select: "_id name sku", // Fetch only the required fields
+    });
 
-//   if (product) {
-//     product.quantity -= item.quantity; // Reduce stock
-//     await product.save(); // Update stock in DB
+    const formattedTransactions = transactions.map((trans) => ({
+      id: trans._id,
+      products: trans.products.map((item) => ({
+        product: item.product
+          ? {
+              _id: item.product._id,
+              name: item.product.name,
+              sku: item.product.sku,
+            }
+          : null, // Handle cases where the product might have been deleted
+        quantity: item.quantity,
+        price: item.price,
+      })),
+      totalAmount: trans.totalAmount,
+      amountReceived: trans.amountReceived,
+      changeGiven: trans.changeGiven,
+      paymentMethod: trans.paymentMethod,
+      status: trans.status,
+      createdAt: trans.createdAt,
+      updatedAt: trans.updatedAt,
+    }));
 
-//     // **Check if stock is low and send an alert**
-//     if (product.quantity <= product.reorderLevel) {
-//       await sendStockAlert(product);
-//     }
-//   }
-// }
+    return res.status(200).json(formattedTransactions);
+  } catch (error) {
+    console.error("Failed to fetch transactions:", error.message);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};

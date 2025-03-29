@@ -18,6 +18,7 @@
 import { V0Sidebar } from "@/components/vosidebar";
 import { Poppins } from "next/font/google";
 
+
 // export default function DashboardLayout({ children }) {
 //   return (
 //     <div className="bg-blue-50">
@@ -57,12 +58,12 @@ export const metadata = {
     "An overview of your business and access to all software functionalities",
 };
 
-
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700"], // You can add any other weights needed
   display: "swap",
 });
+
 
 export default function layout({ children }) {
   return (

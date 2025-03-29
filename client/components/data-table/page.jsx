@@ -1,6 +1,7 @@
 import { DataTable } from "./data-table";
 import { columns } from "./columns";
 import { getProducts } from "@/actions/serverActions";
+import { ResponsiveDataTable } from "../responsive-data-table";
 
 export default async function ProductTable() {
   // const data = [
@@ -65,7 +66,7 @@ export default async function ProductTable() {
   console.log("This is the data sent to the products table: ", data);
   return (
     <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={data} />
+      < DataTable columns={columns} data={data} />
     </div>
   );
 }

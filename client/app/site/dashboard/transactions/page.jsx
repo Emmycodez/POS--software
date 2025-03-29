@@ -1,9 +1,13 @@
-import React from 'react'
+import { getTransactions } from "@/actions/serverActions";
+import TransactionsClient from "./_components/transactions-client";
 
-const TransactionsPage = () => {
+const transactionsPage = async () => {
+  const data = await getTransactions();
   return (
-    <div>TransactionsPage</div>
-  )
-}
+    <div>
+      <TransactionsClient transactionsData={data}/>
+    </div>
+  );
+};
 
-export default TransactionsPage
+export default transactionsPage;
