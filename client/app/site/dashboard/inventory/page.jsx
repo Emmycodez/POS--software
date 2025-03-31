@@ -6,6 +6,7 @@ import InventoryPageClient from "./_components/InventoryPageClient";
 
 const InventoryPage = async () => {
   const data = await getInventory();
+  console.log("This is the data gotten from the inventory page: ", data);
   // const handleStockUpdate = async (id, newQuantity) => {
   //   await UpdateStockModal();
   // }

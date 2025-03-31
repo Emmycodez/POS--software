@@ -9,11 +9,33 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 export const inventoryColumns = (setSelectedProduct, setIsUpdateModalOpen) => [
   {
     accessorKey: "name",
     header: "Name",
+    cell: ({ row }) => {
+      const product = row.original
+      const isLowStock = product.quantity > 0 && product.quantity <= product.reorderLevel
+      const isOutOfStock = product.quantity === 0
+
+      return (
+        <div className="flex w-full items-center gap-2 break-all max-w-[200px]">
+          <span className="font-medium">{product.name}</span>
+          {isLowStock && (
+            <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
+              Low Stock
+            </Badge>
+          )}
+          {isOutOfStock && (
+            <Badge variant="outline" className="bg-red-100 text-red-800">
+              Out of Stock
+            </Badge>
+          )}
+        </div>
+      )
+    },
   },
 
   {

@@ -1,10 +1,14 @@
-import { Product, ProductStock } from "../database/schema.js";
-
-import { ProductPrice } from "../database/schema.js";
-import { Supplier } from "../database/schema.js";
+import {
+  ProductPrice,
+  Supplier,
+  Location,
+  Product,
+  ProductStock,
+} from "../database/schema.js";
 
 export const createProduct = async (req, res) => {
   try {
+    console.log("This is the request body sent to create products: ", req.body);
     const {
       productName,
       productSellingPrice,
@@ -20,7 +24,8 @@ export const createProduct = async (req, res) => {
 
     if (
       !productName ||
-      !productSellingPrice || !productCostPrice ||
+      !productSellingPrice ||
+      !productCostPrice ||
       !stock ||
       !supplier ||
       !productDescription ||
@@ -64,17 +69,31 @@ export const createProduct = async (req, res) => {
     });
 
     await newProductPrice.save();
+    const stockEntries = await Promise.all(
+      stock.map(async ({ locationId, quantity }) => {
+        let location = await Location.findOne({ name: locationId });
 
-      // Create Stock Entries for each location
-      const stockEntries = stock.map(({ locationId, quantity }) => ({
-        product: newProduct._id,
-        location: locationId,
-        quantity,
-      }));
-  
-      await ProductStock.insertMany(stockEntries);
-  
-      console.log("Product created with stock data: ", req.body);
+        if (!location) {
+          console.log(
+            `Location "${locationId}" not found. Creating a new one.`
+          );
+          location = await Location.create({
+            name: locationId,
+            address: "Unknown", // You may want to improve this
+          });
+        }
+
+        return {
+          product: newProduct._id,
+          location: location._id, // Store as ObjectId
+          quantity,
+        };
+      })
+    );
+
+    await ProductStock.insertMany(stockEntries);
+
+    console.log("Product created with stock data: ", req.body);
 
     console.log(
       "This is the data sent to the create product route: ",
@@ -94,38 +113,61 @@ export const createProduct = async (req, res) => {
 
 export const getProducts = async (req, res) => {
   try {
-    // Fetch products and populate supplier details
+    // Fetch products and populate supplier details in one query
     const products = await Product.find().populate("supplier");
+    
+    // Get all product IDs for efficient batch queries
+    const productIds = products.map(product => product._id);
+    
+    // Fetch all prices and stock information in batch queries
+    const productPrices = await ProductPrice.find({ product: { $in: productIds } });
+    const stockEntries = await ProductStock.find({ product: { $in: productIds } })
+                               .populate('location', 'name');
+    
+    // Create lookup maps for efficient access
+    const priceMap = productPrices.reduce((map, price) => {
+      map[price.product.toString()] = price;
+      return map;
+    }, {});
+    
+    const stockMap = stockEntries.reduce((map, stock) => {
+      const productId = stock.product.toString();
+      if (!map[productId]) map[productId] = [];
+      map[productId].push({
+        location: stock.location?.name || "Unknown Location",
+        quantity: stock.quantity,
+        locationId: stock.location?._id
+      });
+      return map;
+    }, {});
+    
+    // Transform the data
+    const formattedProducts = products.map((product) => {
+      const productId = product._id.toString();
+      const productPrice = priceMap[productId];
+      const stockData = stockMap[productId] || [];
+      
+      return {
+        id: productId,
+        name: product.name,
+        sku: product.sku,
+        description: product.description,
+        reorderLevel: product.reorderLevel,
+        supplierName: product.supplier?.name || "Unknown Supplier",
+        category: product.category || "",
+        supplierNumber: product.supplier?.phone || "N/A",
+        costPrice: productPrice?.costPrice || 0,
+        sellingPrice: productPrice?.sellingPrice || 0,
+        lastUpdated: product.updatedAt,
+        stock: stockData,
+        // Total stock across all locations
+        totalStock: stockData.reduce((sum, item) => sum + item.quantity, 0)
+      };
+    });
 
-    // Transform the data to include supplier details and price
-    const formattedProducts = await Promise.all(
-      products.map(async (product) => {
-        // Fetch product price
-        const productPrice = await ProductPrice.findOne({ product: product._id });
-
-        return {
-          id: product._id.toString(),
-          name: product.name,
-          sku: product.sku,
-          description: product.description,
-          quantity: product.quantity,
-          reorderLevel: product.reorderLevel,
-          supplierName: product.supplier?.name || "Unknown Supplier",
-          category: product.category || "",
-          supplierNumber: product.supplier?.phone || "N/A",
-          price: parseInt(productPrice?.price) || 0, // Default to 0 if no price found
-          lastUpdated: product.updatedAt
-        };
-      })
-    );
-
-    // ✅ Send formatted data
-    console.log("This is the data sent from the backend: ", formattedProducts);
     return res.status(200).json({ data: formattedProducts });
-
   } catch (error) {
     console.error("Failed to fetch products:", error.message);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
-

@@ -1,6 +1,5 @@
 "use client"
-
-import { MoreHorizontal, Eye, Edit, Trash2, AlertTriangle } from "lucide-react"
+import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -13,137 +12,149 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 
-export const productColumns = ({ onView, onEdit, onDelete }) => [
-  {
-    accessorKey: "name",
-    header: "Product Name",
-    cell: ({ row }) => {
-      const product = row.original
-      const isLowStock = product.quantity > 0 && product.quantity <= product.reorderLevel
-      const isOutOfStock = product.quantity === 0
-
-      return (
-        <div className="flex w-full items-center gap-2 break-all max-w-[300px]">
-          <span className="font-medium">{product.name}</span>
-          {isLowStock && (
-            <Badge variant="outline" className="bg-yellow-100 text-yellow-800">
-              Low Stock
-            </Badge>
-          )}
-          {isOutOfStock && (
-            <Badge variant="outline" className="bg-red-100 text-red-800">
-              Out of Stock
-            </Badge>
-          )}
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "sku",
-    header: "SKU",
-  },
-  {
-    accessorKey: "category",
-    header: "Category",
-  },
-  {
-    accessorKey: "quantity",
-    header: "Quantity",
-    cell: ({ row }) => {
-      const quantity = row.getValue("quantity")
-      const reorderLevel = row.original.reorderLevel
-
-      if (quantity === 0) {
+// Define the product columns with action handlers
+export const productColumns = ({ onView, onEdit, onDelete }) => {
+  const columns = [
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
         return (
-          <div className="flex items-center text-red-600">
-            <AlertTriangle className="mr-1 h-4 w-4" />
-            <span>{quantity}</span>
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Product Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => <div className="font-medium flex w-full max-w-[150px]">{row.getValue("name")}</div>,
+    },
+    {
+      accessorKey: "sku",
+      header: "SKU",
+    },
+    {
+      accessorKey: "category",
+      header: "Category",
+    },
+    {
+      accessorKey: "quantity",
+      header: ({ column }) => {
+        return (
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Quantity
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
+      cell: ({ row }) => {
+        const quantity = row.getValue("quantity")
+        const reorderLevel = row.original.reorderLevel
+        const stockDetails = row.original.stock || []
+
+        // Determine status based on quantity
+        let status
+        let statusColor
+        if (quantity === 0) {
+          status = "Out of Stock"
+          statusColor = "bg-red-100 text-red-800"
+        } else if (quantity <= reorderLevel) {
+          status = "Low Stock"
+          statusColor = "bg-yellow-100 text-yellow-800"
+        } else {
+          status = "In Stock"
+          statusColor = "bg-green-100 text-green-800"
+        }
+
+        return (
+          <div className="flex items-center space-x-2">
+            <div className="font-medium">{quantity}</div>
+            <Badge variant="outline" className={statusColor}>
+              {status}
+            </Badge>
+            {stockDetails.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <span className="sr-only">Show location details</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-[200px]">
+                  <DropdownMenuLabel>Stock by Location</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {stockDetails.map((item, index) => (
+                    <DropdownMenuItem key={index} className="flex justify-between cursor-default">
+                      <span>{item.location}</span>
+                      <span className="font-medium">{item.quantity}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
         )
-      } else if (quantity <= reorderLevel) {
+      },
+    },
+    {
+      accessorKey: "sellingPrice",
+      header: ({ column }) => {
         return (
-          <div className="flex items-center text-yellow-600">
-            <AlertTriangle className="mr-1 h-4 w-4" />
-            <span>{quantity}</span>
-          </div>
+          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
+            Price
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
         )
-      }
+      },
+      cell: ({ row }) => {
+        const amount = Number.parseFloat(row.getValue("sellingPrice"))
+        const formatted = new Intl.NumberFormat("en-NG", {
+          style: "currency",
+          currency: "NGN",
+        }).format(amount)
 
-      return <div>{quantity}</div>
+        return <div>{formatted}</div>
+      },
     },
-  },
-  {
-    accessorKey: "price",
-    header: "Price",
-    cell: ({ row }) => {
-      const price = row.getValue("price")
-      const formatted = new Intl.NumberFormat("en-NG", {
-        style: "currency",
-        currency: "NGN",
-      }).format(price)
+    {
+      accessorKey: "supplierName",
+      header: "Supplier",
+    },
+    {
+      accessorKey: "lastUpdated",
+      header: "Last Updated",
+      cell: ({ row }) => {
+        const date = row.getValue("lastUpdated")
+        if (!date) return "-"
+        return format(new Date(date), "MMM d, yyyy")
+      },
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const product = row.original
 
-      return <div>{formatted}</div>
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => onView(product)}>View details</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onEdit(product)}>Edit</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => onDelete(product.id)} className="text-red-600">
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
     },
-  },
-  {
-    accessorKey: "supplierName",
-    header: "Supplier",
-  },
-  {
-    accessorKey: "lastUpdated",
-    header: "Last Updated",
-    cell: ({ row }) => {
-      const lastUpdated = row.getValue("lastUpdated");
-    
-      // Ensure lastUpdated is a valid date
-      const date = lastUpdated ? new Date(lastUpdated) : null;
-    
-      if (!date || isNaN(date.getTime())) {
-        return <div>—</div>; // Display a fallback value if the date is invalid
-      }
-    
-      return <div>{format(date, "MMM dd, yyyy")}</div>;
-    },
-    
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const product = row.original
+  ]
 
-      // Add viewDetails to the row data so it can be accessed in mobile view
-      if (typeof onView === "function") {
-        product.viewDetails = () => onView(product)
-      }
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => onView(product)}>
-              <Eye className="mr-2 h-4 w-4" />
-              View details
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onEdit(product)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit product
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => onDelete(product.id)} className="text-red-600 focus:text-red-600">
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete product
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  },
-]
+  return columns
+}
 

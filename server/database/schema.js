@@ -21,7 +21,7 @@ const locationSchema = new Schema(
   {
     name: { type: String, required: true }, // e.g., "Branch A", "Warehouse 1"
     address: { type: String, required: true },
-    user: { type: Schema.Types.ObjectId, ref: "User", required: true }, // Owner of the location
+    // user: { type: Schema.Types.ObjectId, ref: "User", required: true }, // Owner of the location
   },
   { timestamps: true }
 );
@@ -98,6 +98,7 @@ const Supplier = model("Supplier", supplierSchema);
 
 const orderSchema = new Schema(
   {
+    location: { type: Schema.Types.ObjectId, ref: "Location", required: true },
     product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
     quantity: { type: Number, required: true },
     price: { type: Number, required: true }, // Stores the product price at the time of order
@@ -203,6 +204,7 @@ const transactionSchema = new Schema(
         price: { type: Number, required: true }, // Price per unit at the time of sale
       },
     ],
+    location: { type: Schema.Types.ObjectId, ref: "Location", required: true },
     totalAmount: { type: Number, required: true }, // Total cost of all items
     amountReceived: { type: Number }, // Amount the customer paid
     changeGiven: { type: Number, default: 0 }, // Change given to the customer
