@@ -69,7 +69,7 @@ export function SalesFinancialSection() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">300</div>
@@ -110,7 +110,7 @@ export function SalesFinancialSection() {
             </Chart>
           </CardContent>
         </Card>
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle>Average Transaction Value</CardTitle>
             <CardDescription>Daily average transaction value</CardDescription>
@@ -144,7 +144,7 @@ export function SalesFinancialSection() {
               </ResponsiveContainer>
             </Chart>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">

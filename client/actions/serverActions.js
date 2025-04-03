@@ -2,6 +2,34 @@
 
 import { revalidatePath } from "next/cache";
 
+export const getDashboardData = async ({ userId, locationId }) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/dashboard/${locationId}`,
+      {
+        method: "GET",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch dashboard data: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(
+      "Error fetching dashboard data from the server action",
+      error.message
+    );
+    throw error;
+  }
+};
+
 export const createProduct = async ({
   productName,
   productSellingPrice,

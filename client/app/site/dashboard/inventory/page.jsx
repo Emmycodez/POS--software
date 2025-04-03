@@ -1,16 +1,15 @@
-import { getInventory } from "@/actions/serverActions";
+import { getInventory, getProducts } from "@/actions/serverActions";
 import { DataTable } from "@/components/data-table/data-table";
 import React from "react";
 import { inventoryColumns } from "./_components/inventoryColumns";
 import InventoryPageClient from "./_components/InventoryPageClient";
 
 const InventoryPage = async () => {
-  const data = await getInventory();
-  console.log("This is the data gotten from the inventory page: ", data);
+  const data = await getProducts();
+
   // const handleStockUpdate = async (id, newQuantity) => {
   //   await UpdateStockModal();
   // }
-
 
   return (
     <div className="h-screen py-4 px-6 mb-4 border-b">
@@ -22,11 +21,9 @@ const InventoryPage = async () => {
           <CreateProducts />
         </div> */}
       </div>
-      <InventoryPageClient data={data} />
+      {data && <InventoryPageClient sampleProducts={data} />}
     </div>
   );
 };
-
-
 
 export default InventoryPage;

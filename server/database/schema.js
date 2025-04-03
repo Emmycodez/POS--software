@@ -7,10 +7,12 @@ const userSchema = new Schema(
     email: { type: String, unique: true, required: true },
     password: { type: String },
     whatsappNumber: { type: String },
-    role: { type: String, enum: ["admin", "staff", "user"], default: "user" },
+    role: { type: String, enum: ["admin","owner", "cashier", "user"], default: "user" },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
     lastLogin: { type: Date },
-    locations: [{ type: Schema.Types.ObjectId, ref: "Location" }], // User can have multiple locations
+    locations: [{ type: Schema.Types.ObjectId, ref: "Location" }], 
+    assignedLocation: { type: Schema.Types.ObjectId, ref: 'Location' }, // For cashiers
+    accessibleLocations: [{ type: Schema.Types.ObjectId, ref: 'Location' }]// User can have multiple locations
   },
   { timestamps: true }
 );
@@ -21,7 +23,7 @@ const locationSchema = new Schema(
   {
     name: { type: String, required: true }, // e.g., "Branch A", "Warehouse 1"
     address: { type: String, required: true },
-    // user: { type: Schema.Types.ObjectId, ref: "User", required: true }, // Owner of the location
+    user: { type: Schema.Types.ObjectId, ref: "User", required: true }, // Owner of the location
   },
   { timestamps: true }
 );
@@ -40,6 +42,15 @@ const productSchema = new Schema(
     reorderLevel: { type: Number, required: true },
     supplier: { type: Schema.Types.ObjectId, ref: "Supplier" },
     createdBy: { type: Schema.Types.ObjectId, ref: "User" },
+    expiryDate: { 
+      type: Date,
+      index: true // Add index for faster queries
+    },
+    isExpired: {
+      type: Boolean,
+      default: false,
+      index: true
+    }// Add this line for the expiry date
   },
   { timestamps: true }
 );
@@ -52,6 +63,24 @@ productSchema.pre("save", function (next) {
 });
 
 const Product = model("Product", productSchema);
+const productBatchSchema = new Schema(
+  {
+    product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+    batchNumber: { type: String, required: true },
+    manufactureDate: { type: Date },
+    expiryDate: { type: Date, required: true, index: true },
+    quantity: { type: Number, required: true },
+    location: { type: Schema.Types.ObjectId, ref: "Location", required: true },
+    status: {
+      type: String,
+      enum: ["active", "expired", "sold", "returned"],
+      default: "active"
+    }
+  },
+  { timestamps: true }
+);
+
+const ProductBatch = model("ProductBatch", productBatchSchema);
 
 const productStockSchema = new Schema(
   {
@@ -224,6 +253,24 @@ const transactionSchema = new Schema(
 
 const Transaction = model("Transaction", transactionSchema);
 
+const expiryAlertSchema = new Schema(
+  {
+    product: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+    batch: { type: Schema.Types.ObjectId, ref: "ProductBatch" },
+    daysUntilExpiry: { type: Number, required: true },
+    alertType: {
+      type: String,
+      enum: ["expired", "near_expiry"],
+      required: true
+    },
+    notified: { type: Boolean, default: false },
+    notificationDate: { type: Date }
+  },
+  { timestamps: true }
+);
+
+const ExpiryAlert = model("ExpiryAlert", expiryAlertSchema);
+
 export {
   User,
   UserSettings,
@@ -236,8 +283,12 @@ export {
   ProductPrice,
   Transaction,
   Location,
-  ProductStock
+  ProductStock,
+  ProductBatch,
+  ExpiryAlert
 };
+
+
 
 // TODO: Add bank details section to user schema, bank name and account number, also enable multiple accounts to show during bank transfer POS event
 

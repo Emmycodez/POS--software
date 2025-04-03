@@ -1,7 +1,10 @@
+"use client"
+
 import { Poppins } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "../components/ui/toaster";
+import { LocationProvider } from "@/providers/LocationProvider"; 
 
 
 // const poppins = localFont({
@@ -15,6 +18,12 @@ import { Toaster } from "../components/ui/toaster";
 //   ],
 //   variable: "--font-poppins",
 // });
+
+const user = {
+  role: 'cashier', // or 'owner'
+  assignedLocation: 'loc_123' // only needed for cashiers
+}
+
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -30,11 +39,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
+    <LocationProvider user={user}>
     <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.className} antialiased bg-blue-50`}>
         {children}
         <Toaster />
       </body>
     </html>
+    </LocationProvider>
   );
 }

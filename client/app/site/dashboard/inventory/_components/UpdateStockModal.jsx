@@ -29,7 +29,7 @@ export function UpdateStockModal({ product, isOpen, onClose, onUpdate }) {
   })
 
   const handleSubmit = async (e) => {
-    console.log("Calling the handle submit function of the update stock")
+    
     e.preventDefault()
 
     if (!product) return

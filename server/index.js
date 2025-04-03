@@ -11,6 +11,7 @@ import posRoute from './routes/posRoute.js'
 import transactionRoute from './routes/transactionRoute.js'
 import alertRoute from './routes/alertRoute.js'
 import supplierRoute from './routes/supplierRoute.js'
+import dashboardRoute from './routes/dashboardRoute.js'
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use("/api/pos", posRoute)
 app.use("/api/transactions", transactionRoute);
 app.use("/api/alerts", alertRoute);
 app.use("/api/suppliers", supplierRoute)
+app.use("/api/dashboard", dashboardRoute)
 
 const port = process.env.PORT || 4000;
 

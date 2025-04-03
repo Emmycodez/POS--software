@@ -133,7 +133,7 @@ export default function POSSystem({data}) {
 
   // Process checkout
   const processCheckout = () => {
-    console.log("This is the cart data that is being processed: ", cart);
+    
 
     const outOfStockItems = cart.filter((cartItem) => {
       // Find the corresponding product in the products state
