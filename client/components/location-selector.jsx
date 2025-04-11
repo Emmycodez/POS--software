@@ -29,3 +29,26 @@ export default function LocationSelector({ locations }) {
     </select>
   )
 }
+
+
+/*
+"use client";
+
+import { useLocation } from "@/providers/location-provider";
+
+export default function LocationSwitcher() {
+  const { locationId, setLocationId, canSwitchLocations } = useLocation();
+
+  return (
+    <div>
+      <h2>Current Location: {locationId}</h2>
+      {canSwitchLocations && (
+        <button onClick={() => setLocationId("new_location_id")}>
+          Switch Location
+        </button>
+      )}
+    </div>
+  );
+}
+
+*/

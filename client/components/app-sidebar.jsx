@@ -1,32 +1,20 @@
 "use client";
 
-import * as React from "react";
 import {
-  AudioWaveform,
   Bolt,
-  BookOpen,
-  Bot,
-  ChartBarStacked,
-  Command,
-  Frame,
   GalleryVerticalEnd,
-  Gem,
   House,
-  Map,
   MapPinned,
+  Package,
   PackageSearch,
-  PieChart,
-  QrCode,
-  Settings2,
   ShoppingBag,
   ShoppingCart,
   Siren,
   Users,
-  UsersRound,
+  UsersRound
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
-import { NavProjects } from "@/components/nav-projects";
 import { NavUser } from "@/components/nav-user";
 import { TeamSwitcher } from "@/components/team-switcher";
 import {
@@ -34,8 +22,12 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { appName } from "@/app/constants";
 
 // This is sample data.
 const data = {
@@ -106,34 +98,6 @@ const data = {
         },
       ],
     },
-    // {
-    //   title: "Categories",
-    //   url: "/site/dashboard/categories",
-    //   icon: ChartBarStacked,
-    // },
-    // {
-    //   title: "Settings",
-    //   url: "/site/dashboard/settings",
-    //   icon: Settings2,
-    //   items: [
-    //     {
-    //       title: "General",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Team",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Billing",
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Limits",
-    //       url: "#",
-    //     },
-    //   ],
-    // },
     {
       title: "Alerts",
       url: "/site/dashboard/alerts",
@@ -175,18 +139,35 @@ const data = {
 
 export function AppSidebar({ ...props }) {
   return (
-    <Sidebar collapsible="icon" {...props}>
+    (<Sidebar {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" asChild>
+              <a href="#">
+                <div
+                  className="flex aspect-square size-8 items-center justify-center rounded-lg bg-background text-sidebar-primary-foreground">
+                 <Package className="h-12 w-12 text-primary" />
+                </div>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="font-semibold text-gray-900">{appName}</span>
+                  <span className="">v1.0.0</span>
+                </div>
+              </a>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <div className="p-1">
+          {/* <SidebarOptInForm /> */}
+          {/* <SidebarUpgrade/> */}
+        </div>
       </SidebarFooter>
       <SidebarRail />
-    </Sidebar>
+    </Sidebar>)
   );
 }

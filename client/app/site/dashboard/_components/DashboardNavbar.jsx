@@ -6,7 +6,7 @@ import React from "react";
 
 const DashboardNavbar = () => {
   return (
-    <nav className="border-b px-4 py-2 bg-blue-50 h-14">
+    <nav className="border-b px-4 py-2 h-14">
       <div className="flex items-center justify-between space-x-4 ">
         {/* Dummy DIV */}
         <div className="w-12" />

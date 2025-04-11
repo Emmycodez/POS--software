@@ -1,8 +1,11 @@
 import React from 'react'
+import HeroSection from './_components/HeroSection'
 
 const page = () => {
   return (
-    <div className="bg-blue-50">page</div>
+    <div className="bg-background min-h-screen">
+      <HeroSection/>
+    </div>
   )
 }
 

@@ -1,21 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
-import { ModeToggle } from "./ModeToggle";
-import Image from "next/image";
-import { logo } from "@/images";
-import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
-import { usePathname } from "next/navigation";
 import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
+import { Menu, Package, X } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,13 +29,13 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="border-b px-4">
+    <nav className="border-b px-4 bg-gray-100">
       <div className="flex h-16 items-center px-4 justify-between">
         {/* Logo Section */}
         <div className="">
           <Link href="/" className="flex items-center">
-            <Image src={logo} alt="GroupGuard" className="w-[40px] h-[40px]" />
-            <span className="font-bold text-xl">GroupShepherd</span>
+            <Package className="h-8 w-8 text-blue-700 mr-2" />
+            <span className="font-bold text-2xl">Inventrack</span>
           </Link>
         </div>
 
@@ -86,7 +82,6 @@ const Navbar = () => {
 
         {/* User Actions Section */}
         <div className="flex items-center space-x-4 ">
-          <ModeToggle />
           <Avatar className="hidden md:block">
             <AvatarImage src="https://github.com/shadcn.png" />
             <AvatarFallback>CN</AvatarFallback>
