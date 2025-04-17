@@ -22,10 +22,10 @@ const validateAndTransformProducts = (csvData) => {
       "supplierName",
       "supplierNumber",
       "quantity",
+      "batchNumber",
+      "batchExpiry"
     ];
 
-    // Any column that contains "location" or "warehouse" or "store" might be a location
-    // Also any column not in common fields might be a location
     Object.keys(firstRow).forEach((key) => {
       const lowerKey = key.toLowerCase();
       if (
@@ -43,13 +43,13 @@ const validateAndTransformProducts = (csvData) => {
   csvData.forEach((row, index) => {
     const rowErrors = [];
 
-    // Check required fields
     if (!row.name) rowErrors.push("Name is required");
     if (!row.sku) rowErrors.push("SKU is required");
     if (!row.sellingPrice) rowErrors.push("Selling Price is required");
     if (!row.costPrice) rowErrors.push("Cost Price is required");
+    if (!row.batchNumber) rowErrors.push("Batch Number is required");
+    if (!row.batchExpiry) rowErrors.push("Batch Expiry is required");
 
-    // Validate numeric fields
     const productCostPrice = Number.parseFloat(row.costPrice);
     if (isNaN(productCostPrice) || productCostPrice < 0)
       rowErrors.push("Cost Price must be a valid number");
@@ -61,22 +61,18 @@ const validateAndTransformProducts = (csvData) => {
     if (isNaN(reorderLevel) || reorderLevel < 0)
       rowErrors.push("Reorder Level must be a valid number");
 
-    // If there are errors, add to invalid rows
     if (rowErrors.length > 0) {
-      invalidRows.push({ row: index + 2, errors: rowErrors }); // +2 for header row and 0-indexing
+      invalidRows.push({ row: index + 2, errors: rowErrors });
       return;
     }
 
-    // Process stock locations
     const locationStock = [];
 
-    // First check if there's a single quantity field
     const totalQuantity =
       row.quantity !== undefined
         ? Number.parseInt(row.quantity, 10) || 0
         : null;
 
-    // Check for specific location columns
     locationColumns.forEach((locationCol) => {
       if (row[locationCol] !== undefined && row[locationCol] !== "") {
         const quantity = Number.parseInt(row[locationCol], 10) || 0;
@@ -84,7 +80,6 @@ const validateAndTransformProducts = (csvData) => {
       }
     });
 
-    // Check for generic location columns format (Location:X)
     Object.keys(row).forEach((key) => {
       if (
         key.startsWith("Location:") &&
@@ -97,16 +92,15 @@ const validateAndTransformProducts = (csvData) => {
       }
     });
 
-    // If no locations found but we have a total quantity, use a default location
     if (locationStock.length === 0 && totalQuantity !== null) {
-      locationStock.push({ location: "Default Storage", quantity: totalQuantity });
-    }
-    // If no locations or quantity specified, create a default with zero
-    else if (locationStock.length === 0) {
+      locationStock.push({
+        location: "Default Storage",
+        quantity: totalQuantity,
+      });
+    } else if (locationStock.length === 0) {
       locationStock.push({ location: "Default Storage", quantity: 0 });
     }
 
-    // Create valid product object matching API requirements
     const product = {
       productName: row.name,
       stockKeepingUnit: row.sku,
@@ -117,6 +111,8 @@ const validateAndTransformProducts = (csvData) => {
       reorderLevel,
       supplier: row.supplierName || "",
       supplierNumber: row.supplierNumber || "",
+      batchNumber: row.batchNumber,
+      batchExpiry: row.batchExpiry,
       locationStock,
     };
 
@@ -146,8 +142,7 @@ const parseCSV = (file) => {
 };
 
 const generateSampleCSV = () => {
-  // First sample - with multiple locations
-  const multiLocationHeaders = [
+  const headers = [
     "name",
     "sku",
     "description",
@@ -157,11 +152,12 @@ const generateSampleCSV = () => {
     "reorderLevel",
     "supplierName",
     "supplierNumber",
-    "Main Storage",
-    "Secondary Storage",
+    "batchNumber",
+    "batchExpiry",
+    "quantity"
   ];
 
-  const multiLocationRows = [
+  const rows = [
     [
       "Sample Product 1",
       "SP-001",
@@ -172,26 +168,10 @@ const generateSampleCSV = () => {
       "10",
       "Sample Supplier",
       "+1234567890",
-      "20",
-      "5",
+      "BN-001",
+      "2025-12-31",
+      "20"
     ],
-  ];
-
-  // Second sample - with a single quantity
-  const singleLocationHeaders = [
-    "name",
-    "sku",
-    "description",
-    "category",
-    "sellingPrice",
-    "costPrice",
-    "reorderLevel",
-    "supplierName",
-    "supplierNumber",
-    "quantity",
-  ];
-
-  const singleLocationRows = [
     [
       "Sample Product 2",
       "SP-002",
@@ -202,21 +182,17 @@ const generateSampleCSV = () => {
       "15",
       "Another Supplier",
       "+0987654321",
-      "18",
-    ],
+      "BN-002",
+      "2026-06-30",
+      "18"
+    ]
   ];
 
-  // Create full sample with both types
   const csvContent =
-    "# Sample CSV with multiple storage locations\n" +
-    multiLocationHeaders.join(",") +
+    headers.join(",") +
     "\n" +
-    multiLocationRows.map((row) => row.join(",")).join("\n") +
-    "\n\n# Sample CSV with single quantity\n" +
-    singleLocationHeaders.join(",") +
-    "\n" +
-    singleLocationRows.map((row) => row.join(",")).join("\n") +
-    "\n\n# Note: You can use either format. For multiple locations, add columns with your location names.";
+    rows.map((row) => row.join(",")).join("\n") +
+    "\n\n# Note: For multiple locations, add columns with your location names.";
 
   return csvContent;
 };

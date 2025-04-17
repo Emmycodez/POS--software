@@ -1,16 +1,10 @@
-import { getInventory, getProducts } from "@/actions/serverActions";
-import { DataTable } from "@/components/data-table/data-table";
-import React from "react";
-import { inventoryColumns } from "./_components/inventoryColumns";
+import { getServerSession } from "next-auth";
 import InventoryPageClient from "./_components/InventoryPageClient";
+import { authOptions } from "@/lib/authOptions";
 
 const InventoryPage = async () => {
-  const data = await getProducts();
-
-  // const handleStockUpdate = async (id, newQuantity) => {
-  //   await UpdateStockModal();
-  // }
-
+  const session = await getServerSession(authOptions);
+  console.log("This is the inventory session: ", session)
   return (
     <div className="h-screen py-4 px-6 mb-4 border-b">
       <div className="flex justify-between items-center mb-4 border-b">
@@ -21,7 +15,7 @@ const InventoryPage = async () => {
           <CreateProducts />
         </div> */}
       </div>
-      {data && <InventoryPageClient sampleProducts={data} />}
+      {<InventoryPageClient sesssion={session}/>}
     </div>
   );
 };

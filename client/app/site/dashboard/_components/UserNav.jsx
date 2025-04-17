@@ -16,7 +16,7 @@ import { useState } from "react";
 
 const UserNav = ({ userData }) => {
   const [data, setData] = useState(userData);
-  console.log("This is the user data of the user nav: ", data);
+  
 
   const image = data?.image || "/profile.jpg";
   const name = data?.name;

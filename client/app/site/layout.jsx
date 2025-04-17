@@ -23,7 +23,7 @@ const SiteLayout = ({ children }) => {
       <div className={`${poppins.className} antialiased`}>
         {pathName !== "/site" ? "" : <Navbar />}
 
-        <div className={`bg-gray-100`}>{children}</div>
+        <div>{children}</div>
       </div>
     </ThemesProvider>
   );

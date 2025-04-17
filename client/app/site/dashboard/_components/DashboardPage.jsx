@@ -21,8 +21,11 @@ import { AlertsSection } from "./alerts-section";
 import { TransactionsSection } from "./transactions-section";
 import { CustomerSection } from "./customer-section";
 import { AnalyticsSection } from "./analytics-section";
+import { useLocation } from "@/providers/LocationProvider";
 
 export function DashboardPage({data}) {
+  
+  
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
@@ -157,3 +160,5 @@ export function DashboardPage({data}) {
     </div>
   );
 }
+
+

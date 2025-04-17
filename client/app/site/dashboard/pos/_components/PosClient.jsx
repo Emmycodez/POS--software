@@ -208,9 +208,9 @@ export default function POSSystem({data}) {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-blue-50">
+    <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-10 border-b bg-blue-50 p-4">
+      <header className="sticky top-0 z-10 border-b p-4">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tigth">POS System</h1>
           <div className="flex items-center gap-2">

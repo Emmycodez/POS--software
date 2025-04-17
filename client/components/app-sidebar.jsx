@@ -2,6 +2,7 @@
 
 import {
   Bolt,
+  ClipboardList,
   GalleryVerticalEnd,
   House,
   MapPinned,
@@ -11,7 +12,7 @@ import {
   ShoppingCart,
   Siren,
   Users,
-  UsersRound
+  UsersRound,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -28,6 +29,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { appName } from "@/app/constants";
+import LocationSwitcher from "@/app/site/dashboard/_components/LocationSwitcher";
 
 // This is sample data.
 const data = {
@@ -45,43 +47,15 @@ const data = {
   ],
   navMain: [
     {
-      title: "Home",
+      title: "Dashboard",
       url: "/site/dashboard",
       icon: House,
       isActive: true,
-      // items: [
-      //   {
-      //     title: "History",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Starred",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Settings",
-      //     url: "#",
-      //   },
-      // ],
     },
     {
       title: "Employees",
       url: "/site/dashboard/employees",
       icon: UsersRound,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
     },
     {
       title: "Inventory",
@@ -93,20 +67,20 @@ const data = {
           url: "/site/dashboard/inventory/products",
         },
         {
-          title: "Categories",
-          url: "/site/dashboard/inventory/categories",
+          title: "Inventory",
+          url: "/site/dashboard/inventory",
         },
       ],
     },
     {
-      title: "Alerts",
-      url: "/site/dashboard/alerts",
+      title: " Stock Alerts",
+      url: "/site/dashboard/stock-alerts",
       icon: Siren,
     },
     {
-      title: "Todays Deliveries",
-      url: "/site/dashboard/todaysdeliveries",
-      icon: MapPinned,
+      title: "Transactions",
+      url: "/site/dashboard/transactions",
+      icon: ClipboardList,
     },
     {
       title: "POS",
@@ -114,8 +88,8 @@ const data = {
       icon: ShoppingCart,
     },
     {
-      title: "Customers",
-      url: "/site/dashboard/customers",
+      title: "Suppliers",
+      url: "/site/dashboard/suppliers",
       icon: Users,
     },
     {
@@ -126,6 +100,10 @@ const data = {
         {
           title: "Invoice",
           url: "/site/dashboard/orders/invoice",
+        },
+        {
+          title: "Receipt",
+          url: "/site/dashboard/orders/receipt",
         },
       ],
     },
@@ -139,17 +117,16 @@ const data = {
 
 export function AppSidebar({ ...props }) {
   return (
-    (<Sidebar {...props}>
+    <Sidebar {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
               <a href="#">
-                <div
-                  className="flex aspect-square size-8 items-center justify-center rounded-lg bg-background text-sidebar-primary-foreground">
-                 <Package className="h-12 w-12 text-primary" />
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg text-sidebar-primary-foreground">
+                  <Package className="h-12 w-12 text-primary" />
                 </div>
-                <div className="flex flex-col gap-0.5 leading-none">
+                <div className="flex flex-col gap-0.5 leading-none py-4">
                   <span className="font-semibold text-gray-900">{appName}</span>
                   <span className="">v1.0.0</span>
                 </div>
@@ -167,7 +144,7 @@ export function AppSidebar({ ...props }) {
           {/* <SidebarUpgrade/> */}
         </div>
       </SidebarFooter>
-      <SidebarRail />
-    </Sidebar>)
+      {/* <SidebarRail /> */}
+    </Sidebar>
   );
 }

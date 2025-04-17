@@ -62,7 +62,7 @@ export function DataTable({
 
   if (isMobile) {
     return (
-      <div className="space-y-4 bg-blue-50 p-4 rounded-md border">
+      <div className="space-y-4 p-4 rounded-md border">
         <div className="flex items-center py-4">
           <Search className="mr-2 h-4 w-4 text-muted-foreground ml-2" />
           <Input

@@ -12,6 +12,7 @@ import { Menu, Package, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { ModeToggle } from "./ModeToggle";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -29,7 +30,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="border-b px-4 bg-gray-100">
+    <nav className="border-b px-4 ">
       <div className="flex h-16 items-center px-4 justify-between">
         {/* Logo Section */}
         <div className="">
@@ -82,6 +83,7 @@ const Navbar = () => {
 
         {/* User Actions Section */}
         <div className="flex items-center space-x-4 ">
+          <ModeToggle/>
           <Avatar className="hidden md:block">
             <AvatarImage src="https://github.com/shadcn.png" />
             <AvatarFallback>CN</AvatarFallback>

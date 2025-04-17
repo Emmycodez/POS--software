@@ -21,7 +21,7 @@ export function ProductDetailsModal({ product, isOpen, onClose }) {
   const formattedPrice = new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
-  }).format(product.price)
+  }).format(product.sellingPrice)
 
   const isLowStock = product.quantity > 0 && product.quantity <= product.reorderLevel
   const isOutOfStock = product.quantity === 0

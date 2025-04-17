@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { Poppins } from "next/font/google";
 import { redirect } from "next/navigation";
 import LayoutClient from "./_components/layout-client";
-
+import { getLocations } from "@/actions/NextServerActions";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -12,21 +12,22 @@ const poppins = Poppins({
 });
 
 export default async function layout({ children }) {
-
   const session = await getServerSession(authOptions);
 
-  if(!session) {
-    redirect('/site/register');
+  if (!session) {
+    redirect("/site/register");
   }
 
-  if(!session.user.onboarded) {
-    redirect('/site/onboarding')
+  if (!session.user.onboarded) {
+    redirect("/site/onboarding");
   }
+
+  const locations = await getLocations();
   return (
-   
-        <div className={`${poppins.className} flex h-screen bg-primary`}>
-         <LayoutClient session={session}>{children}</LayoutClient>
-        </div>
-     
+    <div className={`${poppins.className} flex h-screen`}>
+      <LayoutClient session={session} locations={locations}>
+        {children}
+      </LayoutClient>
+    </div>
   );
 }
