@@ -150,7 +150,7 @@ const OnboardingForm = () => {
             Welcome to Inventrack
           </h1>
           <p className="mt-2 text-lg text-gray-600">
-            Let's set up your business profile
+            Let&apos;s set up your business profile
           </p>
         </div>
 

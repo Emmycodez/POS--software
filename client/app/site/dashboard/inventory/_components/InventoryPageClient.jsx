@@ -170,21 +170,35 @@ export default function InventoryPage({ session }) {
   const locationId = useLocationStore((state) => state.selectedLocation);
   const [sampleProducts, setSampleProducts] = useState(null);
 
-  useEffect(async () => {
-    const data = await getInventoryByLocation(businessId, locationId);
-    setSampleProducts(data);
-  }, [locationId]);
+  useEffect(() => {
+    const handleFunction = async () => {
+      const data = await getInventoryByLocation(businessId, locationId);
+      setSampleProducts(data);
+      console.log(sampleProducts)
+    };
+    handleFunction();
+  }, [locationId, businessId]);
 
   const transformedProducts = useMemo(() => {
+    // More comprehensive null/undefined check
+    if (!sampleProducts?.data?.length) {
+      return [];
+    }
+  
     return sampleProducts.data.map((product) => {
+      // Safely handle all potentially null/undefined fields
       return {
+        id: product.id || '',
+        name: product.name || 'Unnamed Product',
+        // Add all other product fields you need with fallbacks
         ...product,
-        quantity: product.totalStock, // Use the pre-calculated totalStock
+        quantity: product.totalStock || 0, // Provide fallback for totalStock
         supplierName: product.supplier?.name || "Unknown Supplier",
         supplierNumber: product.supplier?.phone || "N/A",
+        // Add any other transformed fields
       };
     });
-  }, []);
+  }, [sampleProducts]); // Use the full object as dependency
 
   const [products, setProducts] = useState(transformedProducts);
   const [movements, setMovements] = useState(sampleMovements);

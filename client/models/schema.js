@@ -33,7 +33,7 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-const User = models.User || mongoose.model("User", userSchema);
+const User = mongoose.models?.User || mongoose.model("User", userSchema);
 
 const businessSchema = new Schema(
   {
@@ -54,7 +54,8 @@ const businessSchema = new Schema(
   { timestamps: true }
 );
 
-const Business = models.Business || mongoose.model("Business", businessSchema);
+const Business =
+  mongoose.models?.Business || mongoose.model("Business", businessSchema);
 
 // Location Schema
 const locationSchema = new Schema(
@@ -73,13 +74,14 @@ const locationSchema = new Schema(
   { timestamps: true }
 );
 
-const Location = models.Location || mongoose.model("Location", locationSchema);
+const Location =
+  mongoose.models?.Location || mongoose.model("Location", locationSchema);
 
 // Product Schema
 const productSchema = new Schema(
   {
     name: { type: String, required: true },
-    sku: { type: String, unique: true },
+    sku: { type: String },
     description: { type: String },
     category: { type: String },
     reorderLevel: { type: Number, required: true },
@@ -109,7 +111,8 @@ productSchema.pre("save", function (next) {
   next();
 });
 
-const Product = models.Product || mongoose.model("Product", productSchema);
+const Product =
+  mongoose.models?.Product || mongoose.model("Product", productSchema);
 
 // Product Batch Schema
 const productBatchSchema = new Schema(
@@ -130,7 +133,8 @@ const productBatchSchema = new Schema(
 );
 
 const ProductBatch =
-  models.ProductBatch || mongoose.model("ProductBatch", productBatchSchema);
+  mongoose.models?.ProductBatch ||
+  mongoose.model("ProductBatch", productBatchSchema);
 
 // Product Stock Schema
 const productStockSchema = new Schema(
@@ -143,7 +147,8 @@ const productStockSchema = new Schema(
 );
 
 const ProductStock =
-  models.ProductStock || mongoose.model("ProductStock", productStockSchema);
+  mongoose.models?.ProductStock ||
+  mongoose.model("ProductStock", productStockSchema);
 
 // Alert Schema
 const alertSchema = new Schema(
@@ -163,7 +168,7 @@ const alertSchema = new Schema(
 );
 
 const StockAlert =
-  models.StockAlert || mongoose.model("StockAlert", alertSchema);
+  mongoose.models?.StockAlert || mongoose.model("StockAlert", alertSchema);
 
 // Supplier Schema
 const supplierSchema = new Schema(
@@ -179,7 +184,8 @@ const supplierSchema = new Schema(
   { timestamps: true }
 );
 
-const Supplier = models.Supplier || mongoose.model("Supplier", supplierSchema);
+const Supplier =
+  mongoose.models?.Supplier || mongoose.model("Supplier", supplierSchema);
 
 // Order Schema
 const orderSchema = new Schema(
@@ -201,7 +207,7 @@ const orderSchema = new Schema(
   { timestamps: true }
 );
 
-const Order = models.Order || mongoose.model("Order", orderSchema);
+const Order = mongoose.models?.Order || mongoose.model("Order", orderSchema);
 
 // Invoice Schema
 const invoiceSchema = new Schema(
@@ -228,7 +234,8 @@ const invoiceSchema = new Schema(
   { timestamps: true }
 );
 
-const Invoice = models.Invoice || mongoose.model("Invoice", invoiceSchema);
+const Invoice =
+  mongoose.models?.Invoice || mongoose.model("Invoice", invoiceSchema);
 
 const settingsSchema = new Schema(
   {
@@ -245,7 +252,8 @@ const settingsSchema = new Schema(
 );
 
 const UserSettings =
-  models.UserSettings || mongoose.model("UserSettings", settingsSchema);
+  mongoose.models?.UserSettings ||
+  mongoose.model("UserSettings", settingsSchema);
 
 // Receipt Schema
 const receiptSchema = new Schema(
@@ -265,7 +273,8 @@ const receiptSchema = new Schema(
   { timestamps: true }
 );
 
-const Receipt = models.Receipt || mongoose.model("Receipt", receiptSchema);
+const Receipt =
+  mongoose.models?.Receipt || mongoose.model("Receipt", receiptSchema);
 
 // Product Price Schema
 const productPriceSchema = new Schema(
@@ -283,7 +292,8 @@ const productPriceSchema = new Schema(
 );
 
 const ProductPrice =
-  models.ProductPrice || mongoose.model("ProductPrice", productPriceSchema);
+  mongoose.models?.ProductPrice ||
+  mongoose.model("ProductPrice", productPriceSchema);
 
 // Transaction Schema
 const transactionSchema = new Schema(
@@ -318,7 +328,8 @@ const transactionSchema = new Schema(
 );
 
 const Transaction =
-  models.Transaction || mongoose.model("Transaction", transactionSchema);
+  mongoose.models?.Transaction ||
+  mongoose.model("Transaction", transactionSchema);
 
 // Expiry Alert Schema
 const expiryAlertSchema = new Schema(
@@ -338,7 +349,8 @@ const expiryAlertSchema = new Schema(
 );
 
 const ExpiryAlert =
-  models.ExpiryAlert || mongoose.model("ExpiryAlert", expiryAlertSchema);
+  mongoose.models?.ExpiryAlert ||
+  mongoose.model("ExpiryAlert", expiryAlertSchema);
 
 export {
   User,

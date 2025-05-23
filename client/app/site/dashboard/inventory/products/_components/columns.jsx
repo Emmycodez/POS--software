@@ -12,8 +12,9 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 
+
 // Define the product columns with action handlers
-export const productColumns = ({ onView, onEdit, onDelete }) => {
+export const productColumns = ({ onView, onEdit, businessId, onDelete }) => {
   const columns = [
     {
       accessorKey: "name",
@@ -145,7 +146,7 @@ export const productColumns = ({ onView, onEdit, onDelete }) => {
               <DropdownMenuItem onClick={() => onView(product)}>View details</DropdownMenuItem>
               <DropdownMenuItem onClick={() => onEdit(product)}>Edit</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onDelete(product.id)} className="text-red-600">
+              <DropdownMenuItem onClick={() => onDelete(product.id,businessId )} className="text-red-600">
                 Delete
               </DropdownMenuItem>
             </DropdownMenuContent>

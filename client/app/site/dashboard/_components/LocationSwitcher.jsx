@@ -17,7 +17,6 @@ import { useLocationStore } from "@/providers/location-store-provider";
 
 const LocationSwitcher = ({ locations }) => {
   const optimizedLocations = [
-    { id: "kamekanpoon", name: "Switch Locations" },
     ...locations,
   ];
 

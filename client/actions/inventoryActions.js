@@ -33,6 +33,7 @@ export const getInventoryByLocation = async (
       location: locationId,
     });
     const data = formatInventoryData(inventory);
+    console.log("This is the data gotten from get inventory by location: ", inventory);
     return data;
   } catch (error) {
     console.error(

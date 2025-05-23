@@ -385,12 +385,12 @@ export default function POSSystem({data}) {
                     <h3 className="font-medium mb-2">Instructions:</h3>
                     <ol className="list-decimal list-inside space-y-2 text-sm">
                       <li>
-                        Insert customer's card into the Moniepoint POS machine
+                        Insert customer&pos;s card into the Moniepoint POS machine
                       </li>
                       <li>Enter the amount: ₦{cartTotal.toFixed(2)}</li>
                       <li>Let the customer enter their PIN</li>
                       <li>Wait for transaction approval</li>
-                      <li>Click "Mark as Paid" below once approved</li>
+                      <li>Click &quot;Mark as Paid&quot; below once approved</li>
                     </ol>
                   </div>
                   <Button className="w-full" onClick={() => completePayment()}>

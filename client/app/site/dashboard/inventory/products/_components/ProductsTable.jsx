@@ -16,15 +16,16 @@ import { exportToCSV } from "@/lib/export-utils";
 import { format } from "date-fns";
 import { Download, RefreshCw, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { AddEditProductModal } from "./add-edit-product-modal";
 import { productColumns } from "./columns";
 import { ImportCSVModal } from "./import-csv-modal";
 import { ProductDetailsModal } from "./product-details-modal";
+import { deleteProduct as deleteProductAction } from "@/actions/NextServerActions"; 
 
 
 
-export default function ProductsTable({ sampleProducts }) {
+export default function ProductsTable({ sampleProducts, businessId }) {
   const { toast } = useToast();
   const router = useRouter();
 
@@ -42,7 +43,7 @@ export default function ProductsTable({ sampleProducts }) {
         quantity: totalQuantity, // Add a quantity field for the UI
       };
     });
-  }, []);
+  }, [sampleProducts?.data]);
 
   const [products, setProducts] = useState(transformedProducts);
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -207,18 +208,53 @@ export default function ProductsTable({ sampleProducts }) {
   };
 
   // Create columns with action handlers - memoize to prevent recreation on every render
-  const columns = useMemo(
-    () =>
-      productColumns({
-        onView: viewProductDetails,
-        onEdit: editProduct,
-        onDelete: deleteProduct,
-      }),
-    [
-      /* dependencies are stable functions, so no dependencies needed */
-    ]
-  );
+ // Import your server action at the top of the file
+// Adjust the path as needed
 
+// Then in your component, create a handler that uses the server action
+const handleDeleteProduct = useCallback(async (productId) => {
+  try {
+    const result = await deleteProductAction(productId, businessId);
+    
+    if (result.success) {
+      // Only update local state if server action was successful
+      setProducts(prevProducts => prevProducts.filter(p => p.id !== productId));
+      
+      // Show success toast
+      toast({
+        title: "Success",
+        description: "Product deleted successfully",
+      });
+    } else {
+      // Show error toast
+      toast({
+        title: "Error",
+        description: result.message || "Failed to delete product",
+        variant: "destructive"
+      });
+    }
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    toast({
+      title: "Error",
+      description: "An unexpected error occurred",
+      variant: "destructive"
+    });
+  }
+}, [businessId, toast]);
+
+// Then update your columns to use this handler
+const columns = useMemo(
+  () =>
+    productColumns({
+      onView: viewProductDetails,
+      onEdit: editProduct,
+      onDelete: handleDeleteProduct, // Use the handler here instead of the direct server action
+      businessId: businessId
+    }), [
+      businessId, handleDeleteProduct // Update dependency
+    ]
+);
   // Function to get stock location details as a formatted string
   const getStockLocationString = (product) => {
     if (!product.stock || product.stock.length === 0)
@@ -241,7 +277,7 @@ export default function ProductsTable({ sampleProducts }) {
         <div className="mt-4 md:mt-0 flex flex-col sm:flex-row gap-2">
           <Button
             asChild
-            className="bg-black text-white"
+            className="bg-black text-white cursor-pointer"
             onClick={() => window.location.reload()}
           >
             <div className="flex items-center justify-centr gap-2">

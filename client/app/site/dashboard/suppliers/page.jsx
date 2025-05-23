@@ -1,7 +1,6 @@
-import React from "react";
-import AddSupplier from "./_components/AddSupplier";
-import { getSuppliers } from "@/actions/serverActions";
+import { getSuppliers } from "@/actions/NextServerActions";
 import SuppliersPage from "./_components/SupplierClient";
+import { getServerSession } from "next-auth";
 
 // {
 //   id: "1",
@@ -16,7 +15,10 @@ import SuppliersPage from "./_components/SupplierClient";
 // },
 
 const Suppliers = async () => {
+  const session = await getServerSession();
+  console.log("This is the session: ", session)
   const supplierData = await getSuppliers();
+  
 
   return (
     <div className="h-screen py-4 px-6">

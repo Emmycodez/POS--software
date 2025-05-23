@@ -147,8 +147,8 @@ export function ImportCSVModal({ isOpen, onClose, onImport }) {
 
                 <p className="mt-2">For product quantities, you can use either:</p>
                 <ul className="list-disc pl-5 mt-1 space-y-1">
-                  <li>A single "quantity" column for total inventory</li>
-                  <li>Multiple columns with your location names (e.g., "Main Storage", "Warehouse", etc.)</li>
+                  <li>A single &quot;quantity&quot; column for total inventory</li>
+                  <li>Multiple columns with your location names (e.g., &quot;Main Storage&quot;, &quot;Warehouse&quot;, etc.)</li>
                 </ul>
 
                 <Button variant="link" size="sm" className="mt-2 p-0 h-auto" onClick={handleDownloadSample}>

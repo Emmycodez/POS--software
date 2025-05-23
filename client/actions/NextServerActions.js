@@ -15,15 +15,6 @@ import { connectToDB } from "@/utils/database";
 import { getServerSession } from "next-auth";
 import mongoose from "mongoose";
 
-await Product.collection.dropIndex('sku_1').catch(() => {});
-
-// Create new compound index
-await Product.collection.createIndex(
-  { sku: 1, business: 1 }, 
-  { unique: true, name: 'sku_business_unique' }
-);
-
-
 export const handleOnboarding = async (data) => {
   await connectToDB();
 
@@ -195,6 +186,7 @@ export const createSupplier = async (supplierData, businessId) => {
     return {
       success: true,
       message: "Supplier created successfully",
+      data: newSupplier,
     };
   } catch (error) {
     console.error("Failed to create supplier: ", error.message);
@@ -228,55 +220,58 @@ export const createProduct = async (formData, businessId) => {
       locationStock, // Array of { locationId, quantity }
     } = formData;
 
-    // Loop through each location to create a separate product
+    // Step 1: Create the Product record
+    const newProduct = new Product({
+      name: productName,
+      sku: stockKeepingUnit, // Single SKU for the product
+      description: productDescription,
+      category,
+      reorderLevel,
+      supplier,
+      business: businessId,
+      expiryDate: batchExpiry,
+    });
+
+    await newProduct.save();
+
+    // Step 2: Create the ProductPrice record
+    const productPrice = new ProductPrice({
+      product: newProduct._id,
+      business: businessId,
+      sellingPrice: productSellingPrice,
+      costPrice: productCostPrice,
+    });
+
+    await productPrice.save();
+
+    // Step 3: Create ProductBatch record (track batch for the product)
+    // Instead of one batch record, create one for each location
     for (const item of locationStock) {
       const { locationId, quantity } = item;
 
-      // Create the product for the specific location
-      const newProduct = new Product({
-        name: productName,
-        sku: stockKeepingUnit, // optional: add location suffix to avoid SKU conflict
-        description: productDescription,
-        category,
-        reorderLevel,
-        supplier,
-        business: businessId,
-        location: locationId, // 👈 KEY: tie product to this location
-        expiryDate: batchExpiry,
-      });
-
-      await newProduct.save();
-
-      // Create product price
-      const productPrice = new ProductPrice({
-        product: newProduct._id,
-        business: businessId,
-        sellingPrice: productSellingPrice,
-        costPrice: productCostPrice,
-      });
-
-      await productPrice.save();
-
-      // Create batch for the specific location
       await ProductBatch.create({
         product: newProduct._id,
         batchNumber,
         expiryDate: batchExpiry,
-        quantity,
+        quantity: quantity,
         location: locationId,
       });
+    }
+    // Step 4: Create ProductStock records for each location
+    for (const item of locationStock) {
+      const { locationId, quantity } = item;
 
-      // Create/update stock at this location
-      await ProductStock.findOneAndUpdate(
-        { product: newProduct._id, location: locationId },
-        { $inc: { quantity } },
-        { upsert: true, new: true }
-      );
+      await ProductStock.create({
+        product: newProduct._id,
+        business: businessId,
+        location: locationId,
+        quantity, // Quantity of the product at this location
+      });
     }
 
     return {
       success: true,
-      message: "Products created successfully per location.",
+      message: "Product and stock created successfully per location.",
     };
   } catch (error) {
     console.error("Failed to create product: ", error.message);
@@ -287,56 +282,64 @@ export const createProduct = async (formData, businessId) => {
   }
 };
 
-export const getProducts = async (currentBusiness, selectedLocation ) => {
+export const getProducts = async (currentBusiness, selectedLocation) => {
   try {
     // 1. Validate input parameters
     if (!currentBusiness || !selectedLocation) {
-      console.error('Missing required parameters:', {
+      console.error("Missing required parameters:", {
         currentBusiness,
-        selectedLocation
+        selectedLocation,
       });
-      return { error: 'Missing business or location ID' };
+      return { error: "Missing business or location ID" };
     }
 
     // 2. Validate MongoDB ID format
-    if (!mongoose.Types.ObjectId.isValid(currentBusiness) || 
-        !mongoose.Types.ObjectId.isValid(selectedLocation)) {
-      console.error('Invalid ID format:', {
+    if (
+      !mongoose.Types.ObjectId.isValid(currentBusiness) ||
+      !mongoose.Types.ObjectId.isValid(selectedLocation)
+    ) {
+      console.error("Invalid ID format:", {
         currentBusiness,
-        selectedLocation
+        selectedLocation,
       });
-      return { error: 'Invalid business or location ID format' };
+      return { error: "Invalid business or location ID format" };
     }
 
     // 3. Connect to database
     await connectToDB();
-    console.log(`Fetching products for business ${currentBusiness} at location ${selectedLocation}`);
 
     // 4. Create ObjectIds
     const businessObjectId = new mongoose.Types.ObjectId(currentBusiness);
     const locationObjectId = new mongoose.Types.ObjectId(selectedLocation);
 
-    // 5. Fetch products with supplier data
+    // 5. First, fetch all products for this business
     const products = await Product.find({
-      business: currentBusiness,
-      location: selectedLocation,
-    }).populate('supplier');
+      business: businessObjectId
+    }).populate("supplier");
 
     if (!products.length) {
-      console.log('No products found for the given criteria');
+      console.log("No products found for the given business");
       return { data: [] };
     }
 
-    // 6. Prepare for parallel fetching
-    const productIds = products.map((p) => p._id);
-    
-    // 7. Fetch prices and stocks in parallel
-    const [prices, stocks] = await Promise.all([
-      ProductPrice.find({ product: { $in: productIds } }),
+    // 6. Get product IDs for further queries
+    const productIds = products.map(p => p._id);
+
+    // 7. Fetch prices, stocks, and batches in parallel
+    const [prices, stocks, batches] = await Promise.all([
+      ProductPrice.find({ 
+        product: { $in: productIds },
+        business: businessObjectId 
+      }),
       ProductStock.find({
         product: { $in: productIds },
         location: locationObjectId,
-      }).populate('location', 'name')
+        business: businessObjectId
+      }).populate("location", "name"),
+      ProductBatch.find({
+        product: { $in: productIds },
+        location: locationObjectId
+      })
     ]);
 
     // 8. Create lookup maps
@@ -346,50 +349,167 @@ export const getProducts = async (currentBusiness, selectedLocation ) => {
     }, {});
 
     const stockMap = stocks.reduce((map, stock) => {
-      const productId = stock.product.toString();
+      map[stock.product.toString()] = {
+        location: stock.location?.name || "Unknown",
+        quantity: stock.quantity,
+        locationId: stock.location?._id.toString()
+      };
+      return map;
+    }, {});
+
+    const batchMap = batches.reduce((map, batch) => {
+      const productId = batch.product.toString();
       map[productId] = map[productId] || [];
       map[productId].push({
-        location: stock.location?.name || 'Unknown',
-        quantity: stock.quantity,
-        locationId: stock.location?._id.toString(),
+        batchNumber: batch.batchNumber,
+        expiryDate: batch.expiryDate,
+        quantity: batch.quantity
       });
       return map;
     }, {});
 
-    // 9. Format the response
-    const formattedProducts = products.map((product) => {
-      const productId = product._id.toString();
-      const priceData = priceMap[productId] || {};
-      const stockData = stockMap[productId] || [];
+    // 9. Format the response - only include products that have stock at the selected location
+    const formattedProducts = products
+      .filter(product => stockMap[product._id.toString()])
+      .map(product => {
+        const productId = product._id.toString();
+        const priceData = priceMap[productId] || {};
+        const stockData = stockMap[productId] || null;
+        const batchData = batchMap[productId] || [];
 
-      return {
-        id: productId,
-        name: product.name,
-        sku: product.sku,
-        description: product.description,
-        category: product.category,
-        reorderLevel: product.reorderLevel,
-        supplier: {
-          id: product.supplier?._id.toString(),
-          name: product.supplier?.name
-        },
-        supplierNumber: product.supplier?.countryCode + product.supplier?.phone || 'N/A',
-        supplierName: product.supplier?.name || 'Unknown supplier',
-        costPrice: priceData.costPrice || 0,
-        sellingPrice: priceData.sellingPrice || 0,
-        currency: priceData.currency || 'NGN',
-        lastUpdated: product.updatedAt,
-        stock: stockData,
-        totalStock: stockData.reduce((sum, item) => sum + item.quantity, 0),
-        batches: [],
+        return {
+          id: productId,
+          name: product.name,
+          sku: product.sku,
+          description: product.description,
+          category: product.category,
+          reorderLevel: product.reorderLevel,
+          supplier: {
+            id: product.supplier?._id?.toString(),
+            name: product.supplier?.name || "Unknown supplier",
+            countryCode: product.supplier?.countryCode || "",
+            phone: product.supplier?.phone || ""
+          },
+          supplierNumber: product.supplier?.countryCode && product.supplier?.phone 
+            ? `${product.supplier.countryCode}${product.supplier.phone}` 
+            : "N/A",
+          supplierName: product.supplier?.name || "Unknown supplier",
+          costPrice: priceData.costPrice || 0,
+          sellingPrice: priceData.sellingPrice || 0,
+          currency: priceData.currency || "NGN",
+          lastUpdated: product.updatedAt,
+          stock: stockData ? [stockData] : [],
+          totalStock: stockData ? stockData.quantity : 0,
+          batches: batchData,
+          expiryDate: product.expiryDate
+        };
+      });
+
+    return { data: formattedProducts };
+  } catch (error) {
+    console.error("Error in getProducts:", error);
+    return { error: error.message || "Failed to fetch products" };
+  }
+};
+
+
+export const deleteProduct = async (productId, businessId) => {
+  try {
+    // 1. Validate input parameters
+    if (!productId || !businessId) {
+      console.error("Missing required parameters:", { productId, businessId });
+      return { 
+        success: false, 
+        message: "Product ID and Business ID are required" 
       };
+    }
+
+    // 2. Validate MongoDB ID format
+    if (
+      !mongoose.Types.ObjectId.isValid(productId) ||
+      !mongoose.Types.ObjectId.isValid(businessId)
+    ) {
+      console.error("Invalid ID format:", { productId, businessId });
+      return { 
+        success: false, 
+        message: "Invalid Product ID or Business ID format" 
+      };
+    }
+
+    // 3. Connect to database
+    await connectToDB();
+
+    // 4. Create ObjectIds
+    const productObjectId = new mongoose.Types.ObjectId(productId);
+    const businessObjectId = new mongoose.Types.ObjectId(businessId);
+
+    // 5. Verify the product exists and belongs to the business
+    const product = await Product.findOne({
+      _id: productObjectId,
+      business: businessObjectId
     });
 
-    console.log(`Successfully fetched ${formattedProducts.length} products`);
-    return { data: formattedProducts };
+    if (!product) {
+      return {
+        success: false,
+        message: "Product not found or does not belong to this business"
+      };
+    }
 
+    // 6. Use a session to ensure all operations succeed or fail together
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // 7. Delete all associated records
+      
+      // Delete product prices
+      await ProductPrice.deleteMany({
+        product: productObjectId,
+        business: businessObjectId
+      }, { session });
+
+      // Delete product stocks
+      await ProductStock.deleteMany({
+        product: productObjectId,
+        business: businessObjectId
+      }, { session });
+
+      // Delete product batches
+      await ProductBatch.deleteMany({
+        product: productObjectId
+      }, { session });
+
+      // Delete the product itself
+      await Product.deleteOne({
+        _id: productObjectId,
+        business: businessObjectId
+      }, { session });
+
+      // 8. Commit the transaction
+      await session.commitTransaction();
+      session.endSession();
+
+      return {
+        success: true,
+        message: "Product and all associated records deleted successfully"
+      };
+    } catch (error) {
+      // 9. If any operation fails, abort the transaction
+      await session.abortTransaction();
+      session.endSession();
+      
+      console.error("Transaction failed in deleteProduct:", error);
+      return {
+        success: false,
+        message: "Failed to delete product: " + error.message
+      };
+    }
   } catch (error) {
-    console.error('Error in getProducts:', error);
-    return { error: error.message || 'Failed to fetch products' };
+    console.error("Error in deleteProduct:", error);
+    return { 
+      success: false, 
+      message: error.message || "Failed to delete product" 
+    };
   }
 };

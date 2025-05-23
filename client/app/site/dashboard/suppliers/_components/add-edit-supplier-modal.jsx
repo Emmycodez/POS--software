@@ -195,7 +195,7 @@ export function AddEditSupplierModal({ supplier, isOpen, onClose, onSave }) {
               />
               {errors.website && <p className="text-xs text-red-500">{errors.website}</p>}
               <p className="text-xs text-muted-foreground">
-                If you don't include http:// or https://, https:// will be added automatically
+                If you don&apos;t include http:// or https://, https:// will be added automatically
               </p>
             </div>
           </div>
